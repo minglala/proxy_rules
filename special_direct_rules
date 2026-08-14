@@ -1,2 +1,2 @@
-DOMAIN-SUFFIX,opencode.ai,DIRECT // Added for: opencode.ai:443
-DOMAIN-SUFFIX,ip-api.com,DIRECT // Added for: http://ip-api.com/json
+DOMAIN-SUFFIX,opencode.ai // Added for: opencode.ai:443
+DOMAIN-SUFFIX,ip-api.com // Added for: http://ip-api.com/json
