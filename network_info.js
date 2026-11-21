@@ -1,15 +1,20 @@
 /**
- * Surge 增强版网络信息诊断面板
- * 展示网络环境、内网/IPv6、国内直连与代理双出口公网 IP、IP 属性、当前策略链路及双通道延迟
+ * Surge 增强版网络信息诊断面板（双栈完整展示）
+ * 展示内网信息、国内直连 IPv4/IPv6、代理节点 IPv4/IPv6、落地属性、当前策略链路及双通道延迟
  */
 
 const POLICY_DIRECT = "DIRECT";
 const POLICY_PROXY = "Proxy";
 
-const DIRECT_IP_PRIMARY_URL = "https://myip.ipip.net/json";
-const DIRECT_IP_FALLBACK_URL = "https://forge.speedtest.cn/api/location/info";
-const PROXY_IP_PRIMARY_URL = "http://ip-api.com/json/?fields=status,countryCode,city,isp,org,hosting,proxy,query";
-const PROXY_IP_FALLBACK_URL = "https://api.ip.sb/geoip";
+const DIRECT_IPV4_PRIMARY_URL = "https://myip.ipip.net/json";
+const DIRECT_IPV4_FALLBACK_URL = "https://forge.speedtest.cn/api/location/info";
+const DIRECT_IPV6_PRIMARY_URL = "https://6.ipw.cn";
+const DIRECT_IPV6_FALLBACK_URL = "https://api6.ipify.org";
+
+const PROXY_IPV4_PRIMARY_URL = "http://ip-api.com/json/?fields=status,countryCode,city,isp,org,hosting,proxy,query";
+const PROXY_IPV4_FALLBACK_URL = "https://api.ip.sb/geoip";
+const PROXY_IPV6_PRIMARY_URL = "https://api6.ipify.org";
+const PROXY_IPV6_FALLBACK_URL = "https://ipv6.icanhazip.com";
 
 const DIRECT_PING_URL = "http://connectivitycheck.platform.hicloud.com/generate_204";
 const PROXY_PING_URL = "http://cp.cloudflare.com/generate_204";
@@ -19,6 +24,9 @@ const HTTP_OK_MIN = 200;
 const HTTP_OK_MAX = 300;
 const MAX_POLICY_DEPTH = 3;
 const LATENCY_INVALID = -1;
+const IPV6_MAX_LENGTH = 45;
+const IPV6_LINK_LOCAL_PREFIX = "fe80:";
+const IPV6_PATTERN = /^[0-9a-fA-F:.]+$/;
 
 const RADIO_LABELS = {
     CTRadioAccessTechnologyNR: "5G SA",
@@ -78,6 +86,26 @@ function httpGetTimed(url, policy) {
     });
 }
 
+function isValidIpv6(rawText) {
+    const trimmed = (rawText || "").trim();
+    if (!trimmed || trimmed.length > IPV6_MAX_LENGTH || !trimmed.includes(":")) {
+        return false;
+    }
+    return IPV6_PATTERN.test(trimmed);
+}
+
+async function fetchIpv6Address(primaryUrl, fallbackUrl, policy) {
+    const primary = await httpGetTimed(primaryUrl, policy);
+    if (primary.ok && isValidIpv6(primary.body)) {
+        return primary.body.trim();
+    }
+    const fallback = await httpGetTimed(fallbackUrl, policy);
+    if (fallback.ok && isValidIpv6(fallback.body)) {
+        return fallback.body.trim();
+    }
+    return "";
+}
+
 function parseDirectIpip(body) {
     try {
         const json = JSON.parse(body);
@@ -111,14 +139,14 @@ function parseDirectSpeedtest(body) {
 }
 
 async function fetchDirectInfo() {
-    const primary = await httpGetTimed(DIRECT_IP_PRIMARY_URL, POLICY_DIRECT);
+    const primary = await httpGetTimed(DIRECT_IPV4_PRIMARY_URL, POLICY_DIRECT);
     if (primary.ok) {
         const parsed = parseDirectIpip(primary.body);
         if (parsed) {
             return parsed;
         }
     }
-    const fallback = await httpGetTimed(DIRECT_IP_FALLBACK_URL, POLICY_DIRECT);
+    const fallback = await httpGetTimed(DIRECT_IPV4_FALLBACK_URL, POLICY_DIRECT);
     if (fallback.ok) {
         const parsed = parseDirectSpeedtest(fallback.body);
         if (parsed) {
@@ -173,14 +201,14 @@ function parseProxyIpSb(body) {
 }
 
 async function fetchProxyInfo(proxyPolicy) {
-    const primary = await httpGetTimed(PROXY_IP_PRIMARY_URL, proxyPolicy);
+    const primary = await httpGetTimed(PROXY_IPV4_PRIMARY_URL, proxyPolicy);
     if (primary.ok) {
         const parsed = parseProxyIpApi(primary.body);
         if (parsed) {
             return parsed;
         }
     }
-    const fallback = await httpGetTimed(PROXY_IP_FALLBACK_URL, proxyPolicy);
+    const fallback = await httpGetTimed(PROXY_IPV4_FALLBACK_URL, proxyPolicy);
     if (fallback.ok) {
         const parsed = parseProxyIpSb(fallback.body);
         if (parsed) {
@@ -212,24 +240,6 @@ async function resolvePolicyRoute(groupsMap, rootGroup) {
     return chain.join(" -> ");
 }
 
-const IPV6_LINK_LOCAL_PREFIX = "fe80:";
-const IPV6_ULA_PREFIX_FC = "fc";
-const IPV6_ULA_PREFIX_FD = "fd";
-
-function classifyIpv6Status(v6Address) {
-    if (!v6Address || typeof v6Address !== "string") {
-        return "仅IPv4";
-    }
-    const lower = v6Address.toLowerCase();
-    if (lower.startsWith(IPV6_LINK_LOCAL_PREFIX)) {
-        return "仅IPv4";
-    }
-    if (lower.startsWith(IPV6_ULA_PREFIX_FC) || lower.startsWith(IPV6_ULA_PREFIX_FD)) {
-        return "内网IPv6";
-    }
-    return "双栈";
-}
-
 function getLocalNetworkMeta() {
     const net = typeof $network === "object" && $network ? $network : {};
     const wifiSsid = (net.wifi && net.wifi.ssid) ? net.wifi.ssid : "";
@@ -244,17 +254,26 @@ function getLocalNetworkMeta() {
 
     const ipText = v4.primaryAddress || "未分配";
     const routerText = v4.primaryRouter || "";
-    const stackTag = classifyIpv6Status(v6.primaryAddress);
+    const rawV6 = (v6.primaryAddress && typeof v6.primaryAddress === "string") ? v6.primaryAddress.trim() : "";
+    const localV6 = (rawV6 && !rawV6.toLowerCase().startsWith(IPV6_LINK_LOCAL_PREFIX)) ? rawV6 : "";
 
     const lanLine = isWifi && routerText
-        ? `内网: ${ipText} / ${routerText} (${stackTag})`
-        : `本机: ${ipText}${v4.primaryInterface ? ` (${v4.primaryInterface})` : ""} (${stackTag})`;
+        ? `内网: ${ipText} / ${routerText}`
+        : `本机: ${ipText}${v4.primaryInterface ? ` (${v4.primaryInterface})` : ""}`;
 
-    return { isWifi, netLabel, lanLine };
+    return { isWifi, netLabel, lanLine, localV6 };
 }
 
 function formatPing(ms) {
     return ms > 0 ? `${ms}ms` : "超时";
+}
+
+function formatTimeNow() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
 }
 
 function pickPanelStyle(isWifi, directOk, proxyOk, isDirectMode) {
@@ -271,12 +290,38 @@ function pickPanelStyle(isWifi, directOk, proxyOk, isDirectMode) {
     return { icon, color: "#FF9500" };
 }
 
-function formatTimeNow() {
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    const ss = String(now.getSeconds()).padStart(2, "0");
-    return `${hh}:${mm}:${ss}`;
+function buildPanelLines(data) {
+    const directV4Line = data.directInfo.ok
+        ? `直连v4: ${data.directInfo.ip}${data.directInfo.detail ? ` (${data.directInfo.detail})` : ""}`
+        : "直连v4: 探测失败";
+
+    let directV6Line = "直连v6: 未连通";
+    if (data.directV6) {
+        directV6Line = `直连v6: ${data.directV6}`;
+    } else if (data.localMeta.localV6) {
+        directV6Line = `直连v6: 未通 (网卡: ${data.localMeta.localV6})`;
+    }
+
+    const proxyTags = [data.proxyInfo.region, data.proxyInfo.typeTag].filter(Boolean).join(" · ");
+    const proxyV4Line = data.proxyInfo.ok
+        ? `节点v4: ${data.proxyInfo.ip}${proxyTags ? ` (${proxyTags})` : ""}`
+        : "节点v4: 探测失败";
+    const proxyV6Line = data.proxyV6 ? `节点v6: ${data.proxyV6}` : "节点v6: 不支持或未开启";
+
+    const ispParts = [];
+    if (data.proxyInfo.ok && data.proxyInfo.isp) {
+        ispParts.push(`落地: ${data.proxyInfo.isp}`);
+    }
+    if (data.routeText) {
+        ispParts.push(`策略: ${data.routeText}`);
+    }
+
+    const lines = [data.localMeta.lanLine, directV4Line, directV6Line, proxyV4Line, proxyV6Line];
+    if (ispParts.length > 0) {
+        lines.push(ispParts.join(" | "));
+    }
+    lines.push(`延迟: 国内 ${formatPing(data.directPing.ms)} | 代理 ${formatPing(data.proxyPing.ms)}`);
+    return lines;
 }
 
 async function main() {
@@ -288,46 +333,33 @@ async function main() {
         ]);
 
         const modeRaw = outboundRes.mode || "rule";
-        const modeUpper = modeRaw.toUpperCase();
         const isDirectMode = modeRaw === "direct";
         const hasProxyGroup = Boolean(groupsMap && groupsMap[POLICY_PROXY]);
         const proxyPolicy = hasProxyGroup ? POLICY_PROXY : "";
 
-        const [directInfo, proxyInfo, directPing, proxyPing, routeText] = await Promise.all([
+        const [directInfo, directV6, proxyInfo, proxyV6, directPing, proxyPing, routeText] = await Promise.all([
             fetchDirectInfo(),
+            fetchIpv6Address(DIRECT_IPV6_PRIMARY_URL, DIRECT_IPV6_FALLBACK_URL, POLICY_DIRECT),
             fetchProxyInfo(proxyPolicy),
+            fetchIpv6Address(PROXY_IPV6_PRIMARY_URL, PROXY_IPV6_FALLBACK_URL, proxyPolicy),
             httpGetTimed(DIRECT_PING_URL, POLICY_DIRECT),
             httpGetTimed(PROXY_PING_URL, proxyPolicy),
             hasProxyGroup ? resolvePolicyRoute(groupsMap, POLICY_PROXY) : Promise.resolve("")
         ]);
 
-        const directLine = directInfo.ok
-            ? `直连: ${directInfo.ip}${directInfo.detail ? ` (${directInfo.detail})` : ""}`
-            : "直连: 探测失败";
-
-        const proxyTags = [proxyInfo.region, proxyInfo.typeTag].filter(Boolean).join(" · ");
-        const proxyLine = proxyInfo.ok
-            ? `节点: ${proxyInfo.ip}${proxyTags ? ` (${proxyTags})` : ""}`
-            : "节点: 探测失败";
-
-        const ispParts = [];
-        if (proxyInfo.ok && proxyInfo.isp) {
-            ispParts.push(`落地: ${proxyInfo.isp}`);
-        }
-        if (routeText) {
-            ispParts.push(`策略: ${routeText}`);
-        }
-
-        const latencyLine = `延迟: 国内 ${formatPing(directPing.ms)} | 代理 ${formatPing(proxyPing.ms)}`;
-        const lines = [localMeta.lanLine, directLine, proxyLine];
-        if (ispParts.length > 0) {
-            lines.push(ispParts.join(" | "));
-        }
-        lines.push(latencyLine);
-
+        const lines = buildPanelLines({
+            localMeta,
+            directInfo,
+            directV6,
+            proxyInfo,
+            proxyV6,
+            directPing,
+            proxyPing,
+            routeText
+        });
         const style = pickPanelStyle(localMeta.isWifi, directInfo.ok, proxyInfo.ok, isDirectMode);
         $done({
-            title: `${localMeta.netLabel} · ${modeUpper} (${formatTimeNow()})`,
+            title: `${localMeta.netLabel} · ${modeRaw.toUpperCase()} (${formatTimeNow()})`,
             content: lines.join("\n"),
             icon: style.icon,
             "icon-color": style.color
