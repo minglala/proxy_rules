@@ -271,6 +271,14 @@ function pickPanelStyle(isWifi, directOk, proxyOk, isDirectMode) {
     return { icon, color: "#FF9500" };
 }
 
+function formatTimeNow() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
+}
+
 async function main() {
     try {
         const localMeta = getLocalNetworkMeta();
@@ -319,7 +327,7 @@ async function main() {
 
         const style = pickPanelStyle(localMeta.isWifi, directInfo.ok, proxyInfo.ok, isDirectMode);
         $done({
-            title: `${localMeta.netLabel} · ${modeUpper}`,
+            title: `${localMeta.netLabel} · ${modeUpper} (${formatTimeNow()})`,
             content: lines.join("\n"),
             icon: style.icon,
             "icon-color": style.color
