@@ -1,0 +1,15 @@
+#!name=节点运维监控与自愈套装
+#!desc=集成节点状态概览面板、一键调通自愈按钮及网络切换自动清缓存脚本
+#!category=运维监控
+#!system=ios,mac
+#!arguments=overview_interval:600,fix_timeout:25
+#!arguments-desc=overview_interval: 概览面板自动刷新间隔(秒)\nfix_timeout: 一键调通脚本超时时间(秒)
+
+[Panel]
+Node_Overview = script-name=node_overview, title=节点状态概览, content=正在统计节点状态..., update-interval={{{overview_interval}}}
+One_Click_Fix = script-name=one_click_fix, title=一键调通与自愈, content=轻点此卡片执行一键调通, update-interval=86400
+
+[Script]
+auto_flush_dns = type=event, event-name=network-changed, script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/flush_dns.js
+node_overview = type=generic, timeout=20, script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/node_overview.js
+one_click_fix = type=generic, timeout={{{fix_timeout}}}, script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/one_click_fix.js
