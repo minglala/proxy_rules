@@ -13,6 +13,35 @@ const CHATGPT_TRACE_URL = "https://chatgpt.com/cdn-cgi/trace";
 const OPENAI_API_URL = "https://api.openai.com/v1/models";
 
 const PROBE_TIMEOUT_SEC = 6;
+// 模块可编辑参数（通过 argument=cooldown_hours=<小时>;probe_timeout=<秒> 传入，未传时用默认值）
+let probeTimeoutSec = PROBE_TIMEOUT_SEC;
+let alertCooldownMs = 2 * 60 * 60 * 1000;
+(function parseModuleArguments() {
+    try {
+        const raw = (typeof $argument !== "undefined") ? $argument : "";
+        const pairs = {};
+        if (typeof raw === "string" && raw) {
+            for (const part of raw.split(";")) {
+                const idx = part.indexOf("=");
+                if (idx > 0) {
+                    pairs[part.substring(0, idx).trim()] = part.substring(idx + 1).trim();
+                }
+            }
+        } else if (raw && typeof raw === "object") {
+            Object.assign(pairs, raw);
+        }
+        const cooldownHours = Number(pairs.cooldown_hours);
+        if (Number.isFinite(cooldownHours) && cooldownHours > 0) {
+            alertCooldownMs = cooldownHours * 60 * 60 * 1000;
+        }
+        const probeTimeout = Number(pairs.probe_timeout);
+        if (Number.isFinite(probeTimeout) && probeTimeout > 0) {
+            probeTimeoutSec = probeTimeout;
+        }
+    } catch (_) {
+        // 参数解析失败时保持默认值
+    }
+})();
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
 const HTTP_UNAUTHORIZED = 401;
@@ -34,7 +63,6 @@ const SECONDS_TO_MS = 1000;
 
 const STORAGE_ALERT_TS_KEY = "surge_silent_watchdog_last_alert_ts";
 const STORAGE_ALERT_SIG_KEY = "surge_silent_watchdog_last_alert_sig";
-const ALERT_COOLDOWN_MS = 2 * 60 * 60 * 1000;
 
 function httpApiAsync(method, path, body = {}) {
     return new Promise((resolve) => {
@@ -44,7 +72,7 @@ function httpApiAsync(method, path, body = {}) {
 
 function httpGetAsync(url, policy) {
     return new Promise((resolve) => {
-        const opts = { url, timeout: PROBE_TIMEOUT_SEC };
+        const opts = { url, timeout: probeTimeoutSec };
         if (policy) {
             opts.policy = policy;
         }
@@ -254,7 +282,7 @@ function shouldSendNotification(signature) {
     const now = Date.now();
     const lastTs = Number($persistentStore.read(STORAGE_ALERT_TS_KEY) || "0");
     const lastSig = $persistentStore.read(STORAGE_ALERT_SIG_KEY) || "";
-    if (signature === lastSig && (now - lastTs) < ALERT_COOLDOWN_MS) {
+    if (signature === lastSig && (now - lastTs) < alertCooldownMs) {
         return false;
     }
     $persistentStore.write(String(now), STORAGE_ALERT_TS_KEY);
