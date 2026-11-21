@@ -1,13 +1,15 @@
 /**
- * Surge 节点状态概览面板
- * 统计 Quick 与 Staryun 节点总数、可用/失效数、全局最优节点及核心分流组健康度
+ * Surge 节点状态概览面板（兼容 policy-path 外部订阅节点）
+ * 通过 lineHash 读取 benchmark_results 缓存，手动刷新时通过 /v1/policy_groups/test 触发全量实测
  */
 
-const TEST_URL = "http://cp.cloudflare.com/generate_204";
 const SOURCE_GROUPS = ["Quick", "Staryun"];
 const INFO_NODE_REGEX = /(负载均衡|剩余|流量|过期|重置|官网|套餐)/;
 const BUILTIN_POLICIES = new Set(["DIRECT", "REJECT", "REJECT-TINYGIF"]);
-const INVALID_LATENCY = -1;
+
+const LATENCY_UNTESTED = -2;
+const LATENCY_FAILED = -1;
+const LATENCY_ALIVE_UNKNOWN_MS = 0;
 const SECONDS_THRESHOLD = 10;
 const SECONDS_TO_MS = 1000;
 const HEALTHY_RATIO_THRESHOLD = 0.5;
@@ -34,30 +36,50 @@ function httpApiAsync(method, path, body = {}) {
     });
 }
 
-function parseLatencyMs(entry) {
-    if (entry === null || entry === undefined) {
-        return INVALID_LATENCY;
+function normalizeMs(rawValue, allowSeconds) {
+    if (typeof rawValue !== "number" || Number.isNaN(rawValue) || rawValue <= 0) {
+        return LATENCY_FAILED;
     }
-    if (typeof entry === "number") {
-        if (entry <= 0) {
-            return INVALID_LATENCY;
-        }
-        return entry < SECONDS_THRESHOLD ? Math.round(entry * SECONDS_TO_MS) : Math.round(entry);
+    if (allowSeconds && rawValue < SECONDS_THRESHOLD) {
+        return Math.round(rawValue * SECONDS_TO_MS);
     }
-    if (typeof entry === "object") {
-        if (entry.alive === false || entry.error) {
-            return INVALID_LATENCY;
-        }
-        const raw = entry.rtt !== undefined ? entry.rtt : entry.delay;
-        if (typeof raw === "number" && raw > 0) {
-            return raw < SECONDS_THRESHOLD ? Math.round(raw * SECONDS_TO_MS) : Math.round(raw);
-        }
-    }
-    return INVALID_LATENCY;
+    return Math.round(rawValue);
 }
 
-function collectRealNodes(groupsMap, groupNames) {
-    const nodeSet = new Set();
+function parseBenchmarkEntry(entry) {
+    if (entry === null || entry === undefined) {
+        return LATENCY_UNTESTED;
+    }
+    if (typeof entry === "number") {
+        return normalizeMs(entry, true);
+    }
+    if (typeof entry !== "object") {
+        return LATENCY_UNTESTED;
+    }
+    if (entry.alive === false || entry.lastTestErrorMessage || entry.error) {
+        return LATENCY_FAILED;
+    }
+    const msFields = ["lastTestScoreInMS", "scoreInMS", "delay", "latency"];
+    for (const key of msFields) {
+        if (typeof entry[key] === "number") {
+            return normalizeMs(entry[key], false);
+        }
+    }
+    const secFields = ["rtt", "time", "score"];
+    for (const key of secFields) {
+        if (typeof entry[key] === "number") {
+            return normalizeMs(entry[key], true);
+        }
+    }
+    return LATENCY_UNTESTED;
+}
+
+function getNodeKey(member) {
+    return (member && member.lineHash) ? member.lineHash : (member && member.name ? member.name : "");
+}
+
+function collectNodes(groupsMap, groupNames) {
+    const nodeMap = new Map();
     for (const gName of groupNames) {
         const members = groupsMap[gName] || [];
         for (const member of members) {
@@ -65,13 +87,115 @@ function collectRealNodes(groupsMap, groupNames) {
             if (!name || member.isGroup || BUILTIN_POLICIES.has(name) || INFO_NODE_REGEX.test(name)) {
                 continue;
             }
-            nodeSet.add(name);
+            const key = getNodeKey(member);
+            if (key && !nodeMap.has(key)) {
+                nodeMap.set(key, { key, name, lineHash: member.lineHash || "" });
+            }
         }
     }
-    return Array.from(nodeSet);
+    return Array.from(nodeMap.values());
 }
 
-function isPolicyAlive(policyName, groupsMap, latencyMap, visited = new Set()) {
+function updateLatency(latencyMap, key, value) {
+    const prev = latencyMap[key];
+    if (value > 0) {
+        latencyMap[key] = value;
+    } else if (value === LATENCY_ALIVE_UNKNOWN_MS && (prev === undefined || prev < 0)) {
+        latencyMap[key] = value;
+    } else if (value === LATENCY_FAILED && (prev === undefined || prev === LATENCY_UNTESTED)) {
+        latencyMap[key] = value;
+    }
+}
+
+function mergeBenchmarkResults(rawRes, nodes, latencyMap) {
+    const dict = (rawRes && typeof rawRes.results === "object") ? rawRes.results : rawRes;
+    if (!dict || typeof dict !== "object") {
+        return;
+    }
+    for (const node of nodes) {
+        const entry = (node.lineHash && dict[node.lineHash] !== undefined)
+            ? dict[node.lineHash]
+            : dict[node.name];
+        const parsed = parseBenchmarkEntry(entry);
+        if (parsed !== LATENCY_UNTESTED) {
+            updateLatency(latencyMap, node.key, parsed);
+        }
+    }
+}
+
+function mergeGroupTestResults(rawRes, nodes, latencyMap) {
+    if (!rawRes || typeof rawRes !== "object") {
+        return;
+    }
+    const byName = new Map();
+    const byHash = new Map();
+    for (const node of nodes) {
+        byHash.set(node.lineHash, node.key);
+        if (!byName.has(node.name)) {
+            byName.set(node.name, []);
+        }
+        byName.get(node.name).push(node.key);
+    }
+
+    for (const groupPayload of Object.values(rawRes)) {
+        const items = Array.isArray(groupPayload && groupPayload.data) ? groupPayload.data : [];
+        for (const item of items) {
+            const ms = parseBenchmarkEntry(item);
+            if (ms === LATENCY_UNTESTED) {
+                continue;
+            }
+            if (item.lineHash && byHash.has(item.lineHash)) {
+                updateLatency(latencyMap, byHash.get(item.lineHash), ms);
+            } else if (item.name && byName.has(item.name)) {
+                for (const key of byName.get(item.name)) {
+                    updateLatency(latencyMap, key, ms);
+                }
+            }
+        }
+    }
+}
+
+async function runGroupTests(groupsMap, groupNames, latencyMap) {
+    const testResponses = await Promise.all(
+        groupNames.map(async (gName) => {
+            const res = await httpApiAsync("POST", "/v1/policy_groups/test", { group_name: gName });
+            return { gName, res };
+        })
+    );
+
+    for (const { gName, res } of testResponses) {
+        const availableSet = new Set(Array.isArray(res.available) ? res.available : []);
+        const members = groupsMap[gName] || [];
+        for (const member of members) {
+            const name = member && member.name;
+            if (!name || member.isGroup || BUILTIN_POLICIES.has(name) || INFO_NODE_REGEX.test(name)) {
+                continue;
+            }
+            const key = getNodeKey(member);
+            if (availableSet.has(name)) {
+                updateLatency(latencyMap, key, LATENCY_ALIVE_UNKNOWN_MS);
+            } else if (Array.isArray(res.available)) {
+                updateLatency(latencyMap, key, LATENCY_FAILED);
+            }
+        }
+    }
+}
+
+async function fetchSelectMap(groupNames) {
+    const selectMap = {};
+    await Promise.all(
+        groupNames.map(async (name) => {
+            const encoded = encodeURIComponent(name);
+            const res = await httpApiAsync("GET", `/v1/policy_groups/select?group_name=${encoded}`);
+            if (res && typeof res.policy === "string" && res.policy.length > 0) {
+                selectMap[name] = res.policy;
+            }
+        })
+    );
+    return selectMap;
+}
+
+function isPolicyAlive(policyName, groupsMap, selectMap, latencyMap, visited = new Set()) {
     if (!policyName || visited.has(policyName)) {
         return false;
     }
@@ -82,113 +206,142 @@ function isPolicyAlive(policyName, groupsMap, latencyMap, visited = new Set()) {
         return false;
     }
     visited.add(policyName);
+
+    if (selectMap[policyName]) {
+        return isPolicyAlive(selectMap[policyName], groupsMap, selectMap, latencyMap, visited);
+    }
+
     const members = groupsMap[policyName];
     if (Array.isArray(members)) {
-        return members.some((m) => m && !INFO_NODE_REGEX.test(m.name) && isPolicyAlive(m.name, groupsMap, latencyMap, visited));
+        return members.some((m) => {
+            if (!m || !m.name || INFO_NODE_REGEX.test(m.name)) {
+                return false;
+            }
+            if (m.isGroup) {
+                return isPolicyAlive(m.name, groupsMap, selectMap, latencyMap, new Set(visited));
+            }
+            const ms = latencyMap[getNodeKey(m)];
+            return ms !== undefined && ms >= LATENCY_ALIVE_UNKNOWN_MS;
+        });
     }
-    return (latencyMap[policyName] || INVALID_LATENCY) > 0;
+    return false;
 }
 
 function buildRegionSummary(groupsMap, latencyMap) {
     return REGION_GROUPS.map((region) => {
-        const nodes = collectRealNodes(groupsMap, [region.name]);
+        const nodes = collectNodes(groupsMap, [region.name]);
         let alive = 0;
         let bestMs = Infinity;
         for (const node of nodes) {
-            const ms = latencyMap[node] || INVALID_LATENCY;
-            if (ms > 0) {
+            const ms = latencyMap[node.key];
+            if (ms !== undefined && ms >= LATENCY_ALIVE_UNKNOWN_MS) {
                 alive += 1;
-                if (ms < bestMs) {
+                if (ms > 0 && ms < bestMs) {
                     bestMs = ms;
                 }
             }
         }
-        const bestText = bestMs < Infinity ? `${bestMs}ms` : "失效";
+        const bestText = bestMs < Infinity ? `${bestMs}ms` : (alive > 0 ? "可用" : "失效");
         return `${region.label} ${alive}/${nodes.length}(${bestText})`;
     }).join(" | ");
 }
 
-async function checkServiceGroups(groupsMap, latencyMap) {
-    const failedLabels = [];
-    for (const svc of SERVICE_GROUPS) {
-        const encoded = encodeURIComponent(svc.name);
-        const selRes = await httpApiAsync("GET", `/v1/policy_groups/select?group_name=${encoded}`);
-        const current = selRes.policy || "";
-        if (!isPolicyAlive(current, groupsMap, latencyMap)) {
-            failedLabels.push(svc.label);
+function summarizeNodes(nodes, latencyMap) {
+    let aliveCount = 0;
+    let failedCount = 0;
+    let untestedCount = 0;
+    let bestNode = "";
+    let bestMs = Infinity;
+
+    for (const node of nodes) {
+        const ms = latencyMap[node.key];
+        if (ms !== undefined && ms >= LATENCY_ALIVE_UNKNOWN_MS) {
+            aliveCount += 1;
+            if (ms > 0 && ms < bestMs) {
+                bestMs = ms;
+                bestNode = node.name;
+            }
+        } else if (ms === LATENCY_FAILED) {
+            failedCount += 1;
+        } else {
+            untestedCount += 1;
         }
     }
-    return failedLabels;
+    return { aliveCount, failedCount, untestedCount, bestNode, bestMs };
 }
 
 async function main() {
     try {
         const groupsMap = await httpApiAsync("GET", "/v1/policy_groups");
-        const allGroupsToScan = SOURCE_GROUPS.concat(REGION_GROUPS.map((r) => r.name));
-        const uniqueNodes = collectRealNodes(groupsMap, allGroupsToScan);
+        const regionNames = REGION_GROUPS.map((r) => r.name);
+        const scanGroups = SOURCE_GROUPS.concat(regionNames);
+        const nodes = collectNodes(groupsMap, scanGroups);
 
-        if (uniqueNodes.length === 0) {
+        if (nodes.length === 0) {
             $done({
-                title: "节点概览 (无可用节点)",
-                content: "未在 Quick 或 Staryun 策略组中检测到有效节点，请检查订阅更新。",
+                title: "节点概览 (无有效节点)",
+                content: "未在 Quick 或 Staryun 策略组中检测到有效节点，请检查订阅。",
                 icon: "exclamationmark.triangle.fill",
                 "icon-color": "#FF3B30"
             });
             return;
         }
 
-        const testRes = await httpApiAsync("POST", "/v1/policies/test", {
-            policy_names: uniqueNodes,
-            url: TEST_URL
-        });
-        const results = testRes.results || testRes || {};
-
         const latencyMap = {};
-        let aliveCount = 0;
-        let bestNode = "";
-        let bestMs = Infinity;
+        const isManualRefresh = typeof $trigger !== "undefined" && $trigger === "button";
 
-        for (const node of uniqueNodes) {
-            const ms = parseLatencyMs(results[node]);
-            latencyMap[node] = ms;
-            if (ms > 0) {
-                aliveCount += 1;
-                if (ms < bestMs) {
-                    bestMs = ms;
-                    bestNode = node;
-                }
-            }
+        if (isManualRefresh) {
+            await runGroupTests(groupsMap, scanGroups, latencyMap);
         }
 
-        const totalCount = uniqueNodes.length;
-        const failedCount = totalCount - aliveCount;
+        let benchRes = await httpApiAsync("GET", "/v1/policies/benchmark_results");
+        let groupTestRes = await httpApiAsync("GET", "/v1/policy_groups/test_results");
+        mergeBenchmarkResults(benchRes, nodes, latencyMap);
+        mergeGroupTestResults(groupTestRes, nodes, latencyMap);
+
+        // 若自动刷新时完全没有命中任何缓存，自动执行一次策略组测试
+        let stats = summarizeNodes(nodes, latencyMap);
+        if (!isManualRefresh && stats.aliveCount === 0 && stats.failedCount === 0) {
+            await runGroupTests(groupsMap, scanGroups, latencyMap);
+            benchRes = await httpApiAsync("GET", "/v1/policies/benchmark_results");
+            groupTestRes = await httpApiAsync("GET", "/v1/policy_groups/test_results");
+            mergeBenchmarkResults(benchRes, nodes, latencyMap);
+            mergeGroupTestResults(groupTestRes, nodes, latencyMap);
+            stats = summarizeNodes(nodes, latencyMap);
+        }
+
+        const allSelectTargets = SERVICE_GROUPS.map((s) => s.name).concat(SOURCE_GROUPS);
+        const selectMap = await fetchSelectMap(allSelectTargets);
+        const failedServices = SERVICE_GROUPS
+            .filter((svc) => !isPolicyAlive(svc.name, groupsMap, selectMap, latencyMap))
+            .map((svc) => svc.label);
+
+        const totalCount = nodes.length;
+        const countParts = [`总计 ${totalCount}`, `可用 ${stats.aliveCount}`, `失效 ${stats.failedCount}`];
+        if (stats.untestedCount > 0) {
+            countParts.push(`未测 ${stats.untestedCount}`);
+        }
+        const bestLine = stats.bestNode
+            ? `${stats.bestNode} (${stats.bestMs}ms)`
+            : (stats.aliveCount > 0 ? "节点可用 (点击右上角刷新测速)" : "无连通节点");
         const regionLine = buildRegionSummary(groupsMap, latencyMap);
-        const failedServices = await checkServiceGroups(groupsMap, latencyMap);
-        const bestLine = bestNode ? `${bestNode} (${bestMs}ms)` : "无连通节点";
         const serviceLine = failedServices.length === 0
             ? "核心分流: 全部连通"
             : `异常分流: ${failedServices.join(", ")} (建议点击一键调通)`;
 
         let icon = "checkmark.shield.fill";
         let color = "#34C759";
-        if (aliveCount === 0 || failedServices.length > 0) {
+        if (stats.aliveCount === 0 || failedServices.length > 0) {
             icon = "xmark.shield.fill";
             color = "#FF3B30";
-        } else if (aliveCount / totalCount < HEALTHY_RATIO_THRESHOLD) {
+        } else if (stats.aliveCount / totalCount < HEALTHY_RATIO_THRESHOLD) {
             icon = "exclamationmark.shield.fill";
             color = "#FF9500";
         }
 
-        const content = [
-            `总计 ${totalCount} | 可用 ${aliveCount} | 失效 ${failedCount}`,
-            `最优: ${bestLine}`,
-            `地区: ${regionLine}`,
-            serviceLine
-        ].join("\n");
-
         $done({
             title: "节点状态概览",
-            content,
+            content: [countParts.join(" | "), `最优: ${bestLine}`, `地区: ${regionLine}`, serviceLine].join("\n"),
             icon,
             "icon-color": color
         });
