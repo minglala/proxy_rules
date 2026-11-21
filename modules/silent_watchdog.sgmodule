@@ -1,6 +1,8 @@
 #!name=定时静默巡检与无感自愈
 #!desc=每30分钟在后台静默校验主代理与AI出口，正常零打扰，异常时自动切换合规出口并推送告警
 #!category=运维监控
+#!arguments=interval_min:30,cooldown_hours:2,probe_timeout:6
+#!arguments-desc=interval_min: 巡检间隔(分钟, 默认30)\ncooldown_hours: 同类告警冷却(小时, 默认2)\nprobe_timeout: 单次探测超时(秒, 默认6)
 
 [Script]
-silent_watchdog.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/silent_watchdog.js,type=cron,cronexp="*/30 * * * *",timeout=20
+silent_watchdog.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/silent_watchdog.js,type=cron,cronexp="*/{{{interval_min}}} * * * *",timeout=20,argument=cooldown_hours={{{cooldown_hours}}};probe_timeout={{{probe_timeout}}}
