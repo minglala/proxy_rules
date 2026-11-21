@@ -1,0 +1,59 @@
+#!name=全栈 AI 服务高优分流
+#!desc=高优先级接管 OpenAI、Claude、Gemini、Grok、Perplexity、Cursor 及 Copilot 等 AI 流量，防误分流至受限地区
+#!category=分流增强
+
+[Rule]
+# OpenAI / ChatGPT / Sora
+DOMAIN-SUFFIX,openai.com,📟智能助理
+DOMAIN-SUFFIX,chatgpt.com,📟智能助理
+DOMAIN-SUFFIX,oaistatic.com,📟智能助理
+DOMAIN-SUFFIX,oaiusercontent.com,📟智能助理
+DOMAIN-SUFFIX,sora.com,📟智能助理
+DOMAIN-SUFFIX,ai.com,📟智能助理
+DOMAIN,chatgpt.livekit.cloud,📟智能助理
+DOMAIN,host.livekit.cloud,📟智能助理
+
+# Anthropic / Claude
+DOMAIN-SUFFIX,anthropic.com,📟智能助理
+DOMAIN-SUFFIX,claude.ai,📟智能助理
+DOMAIN-SUFFIX,claudeusercontent.com,📟智能助理
+DOMAIN-SUFFIX,clau.de,📟智能助理
+
+# Google Gemini / AI Studio / NotebookLM / DeepMind
+DOMAIN-SUFFIX,gemini.google.com,📟智能助理
+DOMAIN-SUFFIX,generativelanguage.googleapis.com,📟智能助理
+DOMAIN-SUFFIX,aistudio.google.com,📟智能助理
+DOMAIN-SUFFIX,makersuite.google.com,📟智能助理
+DOMAIN-SUFFIX,notebooklm.google.com,📟智能助理
+DOMAIN-SUFFIX,notebooklm.google,📟智能助理
+DOMAIN-SUFFIX,deepmind.com,📟智能助理
+DOMAIN-SUFFIX,deepmind.google,📟智能助理
+DOMAIN-SUFFIX,labs.google,📟智能助理
+DOMAIN-SUFFIX,jules.google.com,📟智能助理
+DOMAIN,geller-pa.googleapis.com,📟智能助理
+DOMAIN,proactivebackend-pa.googleapis.com,📟智能助理
+DOMAIN,aisandbox-pa.googleapis.com,📟智能助理
+DOMAIN,alkalimakersuite-pa.clients6.google.com,📟智能助理
+
+# xAI / Grok / Perplexity
+DOMAIN-SUFFIX,x.ai,📟智能助理
+DOMAIN-SUFFIX,grok.com,📟智能助理
+DOMAIN-SUFFIX,perplexity.ai,📟智能助理
+DOMAIN-SUFFIX,pplx.ai,📟智能助理
+
+# AI 编程与聚合 API（Cursor / Copilot / Windsurf / OpenRouter / Groq）
+DOMAIN-SUFFIX,cursor.sh,📟智能助理
+DOMAIN-SUFFIX,cursor.com,📟智能助理
+DOMAIN-SUFFIX,cursorapi.com,📟智能助理
+DOMAIN-SUFFIX,api.githubcopilot.com,📟智能助理
+DOMAIN-SUFFIX,copilot-proxy.githubusercontent.com,📟智能助理
+DOMAIN-SUFFIX,codeium.com,📟智能助理
+DOMAIN-SUFFIX,windsurf.com,📟智能助理
+DOMAIN-SUFFIX,openrouter.ai,📟智能助理
+DOMAIN-SUFFIX,groq.com,📟智能助理
+DOMAIN-SUFFIX,mistral.ai,📟智能助理
+DOMAIN-SUFFIX,cohere.ai,📟智能助理
+DOMAIN-SUFFIX,cohere.com,📟智能助理
+DOMAIN-SUFFIX,poe.com,📟智能助理
+DOMAIN-SUFFIX,meta.ai,📟智能助理
+DOMAIN-SUFFIX,midjourney.com,📟智能助理
