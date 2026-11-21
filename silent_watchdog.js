@@ -278,6 +278,14 @@ async function switchToBestAlternative(groupName, candidates, regionBest) {
     return { switched: true, text: `${groupName} 已切至 ${chosen}(${msTag})` };
 }
 
+function formatTimeNow() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
+}
+
 function shouldSendNotification(signature) {
     const now = Date.now();
     const lastTs = Number($persistentStore.read(STORAGE_ALERT_TS_KEY) || "0");
@@ -343,7 +351,7 @@ async function main() {
             $notification.post(
                 "Surge 静默巡检发现异常",
                 issues.join("；"),
-                actions.length > 0 ? actions.join("\n") : "请打开 Surge 检查节点或网络状态"
+                (actions.length > 0 ? actions.join("\n") : "请打开 Surge 检查节点或网络状态") + `\n检查时间: ${formatTimeNow()}`
             );
         }
     } catch (err) {
