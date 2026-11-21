@@ -1,0 +1,24 @@
+#!name=开屏广告本地伪造秒跳过
+#!desc=对主流聚合广告 SDK 及常见应用开屏接口返回空 JSON，消除拦截后的启动重试卡顿
+#!category=广告拦截
+
+[Map Local]
+# 穿山甲 (ByteDance Pangle)
+^https?:\/\/api-access\.pangolin-sdk-toutiao\d?\.com\/api\/ad\/union\/sdk\/get_ads\/ data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+# 优量汇 (Tencent GDT)
+^https?:\/\/mi\.gdt\.qq\.com\/gdt_mview\.fcg data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+# 百青藤 (Baidu Mobads)
+^https?:\/\/mobads\.baidu\.com\/cpro\/ui\/mads\.php data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+# 快手广告联盟
+^https?:\/\/open\.e\.kuaishou\.com\/rest\/e\/v3\/open\/univ data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+# Sigmob 聚合广告
+^https?:\/\/adservice\.sigmob\.cn\/ad\/v\d data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+# 知乎开屏广告
+^https?:\/\/api\.zhihu\.com\/commercial_api\/launch_v2 data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+# 哔哩哔哩开屏广告
+^https?:\/\/app\.bilibili\.com\/x\/v2\/splash\/(list|show|event\/list2) data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+# 微博开屏广告
+^https?:\/\/(sdkapp|wbapp)\.uve\.weibo\.com\/interface\/sdk\/sdkad\.php data-type=text data="{}" status-code=200 header="Content-Type: application/json"
+
+[MITM]
+hostname = %APPEND% api-access.pangolin-sdk-toutiao*.com, mi.gdt.qq.com, mobads.baidu.com, open.e.kuaishou.com, adservice.sigmob.cn, api.zhihu.com, app.bilibili.com, sdkapp.uve.weibo.com, wbapp.uve.weibo.com
