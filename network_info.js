@@ -212,6 +212,24 @@ async function resolvePolicyRoute(groupsMap, rootGroup) {
     return chain.join(" -> ");
 }
 
+const IPV6_LINK_LOCAL_PREFIX = "fe80:";
+const IPV6_ULA_PREFIX_FC = "fc";
+const IPV6_ULA_PREFIX_FD = "fd";
+
+function classifyIpv6Status(v6Address) {
+    if (!v6Address || typeof v6Address !== "string") {
+        return "仅IPv4";
+    }
+    const lower = v6Address.toLowerCase();
+    if (lower.startsWith(IPV6_LINK_LOCAL_PREFIX)) {
+        return "仅IPv4";
+    }
+    if (lower.startsWith(IPV6_ULA_PREFIX_FC) || lower.startsWith(IPV6_ULA_PREFIX_FD)) {
+        return "内网IPv6";
+    }
+    return "双栈";
+}
+
 function getLocalNetworkMeta() {
     const net = typeof $network === "object" && $network ? $network : {};
     const wifiSsid = (net.wifi && net.wifi.ssid) ? net.wifi.ssid : "";
@@ -226,11 +244,11 @@ function getLocalNetworkMeta() {
 
     const ipText = v4.primaryAddress || "未分配";
     const routerText = v4.primaryRouter || "";
-    const ipv6Tag = v6.primaryAddress ? "IPv6" : "仅IPv4";
+    const stackTag = classifyIpv6Status(v6.primaryAddress);
 
     const lanLine = isWifi && routerText
-        ? `内网: ${ipText} / ${routerText} (${ipv6Tag})`
-        : `本机: ${ipText}${v4.primaryInterface ? ` (${v4.primaryInterface})` : ""} (${ipv6Tag})`;
+        ? `内网: ${ipText} / ${routerText} (${stackTag})`
+        : `本机: ${ipText}${v4.primaryInterface ? ` (${v4.primaryInterface})` : ""} (${stackTag})`;
 
     return { isWifi, netLabel, lanLine };
 }
