@@ -267,6 +267,14 @@ async function repairServiceGroups(groupsMap, selectMap, latencyMap) {
     return { switched, unreachable };
 }
 
+function formatTimeNow() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
+}
+
 async function renderIdleState() {
     const outbound = await httpApiAsync("GET", "/v1/outbound");
     const mode = (outbound.mode || "unknown").toUpperCase();
@@ -313,6 +321,7 @@ async function runOneClickFix() {
         }
         summaryLines.push(rulesetOk ? "规则集源站: 连通正常" : "规则集源站: 访问超时，请检查主代理");
 
+        summaryLines.push(`检查时间: ${formatTimeNow()}`);
         const allHealthy = unreachable.length === 0 && rulesetOk;
         $notification.post(
             allHealthy ? "Surge 一键调通完成" : "Surge 调通完成（存在异常项）",
@@ -320,14 +329,14 @@ async function runOneClickFix() {
             summaryLines.join("\n")
         );
         $done({
-            title: allHealthy ? "一键调通 (全部畅通)" : "一键调通 (存在受阻)",
+            title: allHealthy ? `一键调通 (${formatTimeNow()} · 全部畅通)` : `一键调通 (${formatTimeNow()} · 存在受阻)`,
             content: summaryLines.join("\n"),
             icon: allHealthy ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
             "icon-color": allHealthy ? "#34C759" : "#FF3B30"
         });
     } catch (err) {
         $done({
-            title: "一键调通失败",
+            title: `一键调通失败 (${formatTimeNow()})`,
             content: `执行异常: ${String(err)}`,
             icon: "xmark.circle.fill",
             "icon-color": "#FF3B30"
