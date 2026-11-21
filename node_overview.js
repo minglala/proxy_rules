@@ -270,6 +270,14 @@ function summarizeNodes(nodes, latencyMap) {
     return { aliveCount, failedCount, untestedCount, bestNode, bestMs };
 }
 
+function formatTimeNow() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
+}
+
 async function main() {
     try {
         const groupsMap = await httpApiAsync("GET", "/v1/policy_groups");
@@ -279,7 +287,7 @@ async function main() {
 
         if (nodes.length === 0) {
             $done({
-                title: "节点概览 (无有效节点)",
+                title: `节点概览 (${formatTimeNow()} · 无有效节点)`,
                 content: "未在 Quick 或 Staryun 策略组中检测到有效节点，请检查订阅。",
                 icon: "exclamationmark.triangle.fill",
                 "icon-color": "#FF3B30"
@@ -340,14 +348,14 @@ async function main() {
         }
 
         $done({
-            title: "节点状态概览",
+            title: `节点状态概览 (${formatTimeNow()})`,
             content: [countParts.join(" | "), `最优: ${bestLine}`, `地区: ${regionLine}`, serviceLine].join("\n"),
             icon,
             "icon-color": color
         });
     } catch (err) {
         $done({
-            title: "节点概览异常",
+            title: `节点概览异常 (${formatTimeNow()})`,
             content: `统计脚本执行失败: ${String(err)}`,
             icon: "exclamationmark.triangle.fill",
             "icon-color": "#FF3B30"
