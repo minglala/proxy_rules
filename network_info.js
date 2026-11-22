@@ -321,6 +321,7 @@ function buildPanelLines(data) {
         lines.push(ispParts.join(" | "));
     }
     lines.push(`延迟: 国内 ${formatPing(data.directPing.ms)} | 代理 ${formatPing(data.proxyPing.ms)}`);
+    lines.push(`检查时间: ${formatTimeNow()}`);
     return lines;
 }
 
@@ -366,7 +367,7 @@ async function main() {
         });
     } catch (err) {
         $done({
-            title: "网络信息诊断异常",
+            title: `网络信息诊断异常 (${formatTimeNow()})`,
             content: `脚本执行失败: ${String(err)}`,
             icon: "exclamationmark.triangle.fill",
             "icon-color": "#FF3B30"
