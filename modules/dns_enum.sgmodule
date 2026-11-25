@@ -3,7 +3,7 @@
 #!category=运维监控
 
 [Panel]
-DNS_Enum=title="节点域名枚举",content="正在读取DNS缓存...",style=info,script-name=dns_enum.js,update-interval=3600
+DNS_Enum=title="节点域名枚举",content="正在读取DNS缓存...",style=info,script-name=dns_enum3.js,update-interval=3600
 
 [Script]
-dns_enum.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/dns_enum.js,type=generic,timeout=600
+dns_enum3.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/dns_enum3.js,type=generic,timeout=600
