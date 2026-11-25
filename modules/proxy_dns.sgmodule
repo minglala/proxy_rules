@@ -1,10 +1,12 @@
 #!name=节点域名专用解析
-#!desc=等效Clash的proxy-server-nameserver: 将机场节点服务器域名指派至机场专用DoH解析, 避免污染与解析环路; 域名清单由dns_enum3归属枚举得出(109节点/6域名/6个纯IP节点)
+#!desc=模块版proxy-server-nameserver: [Host]覆盖生效, 装上即用, 本地[Host]可为空; 节点域名清单由枚举器全量归属得出(109节点/6域名), DoH与bootstrap地址可在模块参数里改
 #!category=网络优化
+#!arguments=doh1:https://alicdn-tbcdn-jdcdn-iycdn.mcw.gay/b13dc6533ab6db6cac6982acccec36e8/dns-query, doh2:https://txcdn-tbcdn-bdcdn-ykcdn.mcw.gay/292f105ae785d1845a8799971ac3a14b/dns-query, boot1:223.5.5.5, boot2:119.29.29.29
+#!arguments-desc=doh1/doh2: 节点域名专用DoH地址(机场令牌变更时改这里, 请勿留空); boot1/boot2: 专用DoH自身域名的bootstrap解析(防循环依赖)
 
 [Host]
-*.inba996.com = server:https://radar.l9oauy.com:34683/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://8.163.85.149:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://23.146.72.61:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6
-*.mcw.gay = server:https://radar.l9oauy.com:34683/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://8.163.85.149:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://23.146.72.61:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6
-*.myinba55.com = server:https://radar.l9oauy.com:34683/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://8.163.85.149:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://23.146.72.61:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6
-*.keyapisub.xyz = server:https://radar.l9oauy.com:34683/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://8.163.85.149:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://23.146.72.61:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6
-*.chhbuv.cn = server:https://radar.l9oauy.com:34683/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://8.163.85.149:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6, https://23.146.72.61:44443/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6
+*.mcw.gay = server:{{{boot1}}}, {{{boot2}}}
+*.inba996.com = server:{{{doh1}}}, {{{doh2}}}
+*.myinba55.com = server:{{{doh1}}}, {{{doh2}}}
+*.keyapisub.xyz = server:{{{doh1}}}, {{{doh2}}}
+*.chhbuv.cn = server:{{{doh1}}}, {{{doh2}}}
