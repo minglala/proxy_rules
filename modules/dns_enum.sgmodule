@@ -1,8 +1,8 @@
 #!name=节点域名专用解析
 #!desc=动态生成: 枚举当前节点域名并仅通过MCP自动写入配置[Host]段(标记块, 只替换自己那块); 定时自动更新默认关闭(可按需开启); 需在配置[General]开启http-api及http-api-mcp并把密钥填入本模块参数api_key
 #!category=网络优化
-#!arguments=doh1:https://alicdn-tbcdn-jdcdn-iycdn.mcw.gay/b13dc6533ab6db6cac6982acccec36e8/dns-query,doh2:https://txcdn-tbcdn-bdcdn-ykcdn.mcw.gay/292f105ae785d1845a8799971ac3a14b/dns-query,doh3,doh4,boot1:223.5.5.5,boot2:119.29.29.29,api_port:6171,api_key,auto_update:off,auto_hours:6
-#!arguments-desc=doh1/doh2: 节点域名专用DoH地址(请勿留空); doh3/doh4: 可选扩展DoH槽位(不用请留空); boot1/boot2: DoH自身域名的bootstrap解析; api_port/api_key: 配置中http-api的端口与密钥(与配置里填写的完全一致); auto_update: 定时自动刷新开关(on/off, 默认off); auto_hours: 定时自动刷新间隔小时数(默认6)
+#!arguments=doh1:https://alicdn-tbcdn-jdcdn-iycdn.mcw.gay/b13dc6533ab6db6cac6982acccec36e8/dns-query,doh2:https://txcdn-tbcdn-bdcdn-ykcdn.mcw.gay/292f105ae785d1845a8799971ac3a14b/dns-query,doh3:none,doh4:none,boot1:223.5.5.5,boot2:119.29.29.29,api_port:6171,api_key,auto_update:off,auto_hours:6
+#!arguments-desc=doh1/doh2: 节点域名专用DoH地址(请勿留空); doh3/doh4: 可选扩展DoH槽位(默认none=不启用, 填DoH地址即启用); boot1/boot2: DoH自身域名的bootstrap解析; api_port/api_key: 配置中http-api的端口与密钥(与配置里填写的完全一致); auto_update: 定时自动刷新开关(on/off, 默认off); auto_hours: 定时自动刷新间隔小时数(默认6)
 
 [Panel]
 DNS_Enum=title="节点域名枚举",content="点击刷新开始枚举并自动写入配置",style=info,script-name=dns_enum14.js
