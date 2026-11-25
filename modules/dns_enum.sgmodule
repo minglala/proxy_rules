@@ -1,9 +1,9 @@
 #!name=节点域名枚举器
-#!desc=通道B: 从DNS缓存累积枚举节点服务器域名并按后缀聚类, 生成专用DoH的Host指派行; 只读, 不改配置不拉订阅
+#!desc=点一下: 自动枚举节点服务器域名, 生成专用DoH指派并自动写入配置[Host]段生效; 不拉订阅
 #!category=运维监控
 
 [Panel]
-DNS_Enum=title="节点域名枚举",content="正在读取DNS缓存...",style=info,script-name=dns_enum3.js,update-interval=3600
+DNS_Enum=title="节点域名枚举",content="正在读取DNS缓存...",style=info,script-name=dns_enum4.js,update-interval=3600
 
 [Script]
-dns_enum3.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/dns_enum3.js,type=generic,timeout=600
+dns_enum4.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/dns_enum4.js,type=generic,timeout=600
