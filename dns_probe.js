@@ -103,6 +103,10 @@ async function probeDetail(lines, report, externalFirst, policiesRes) {
     for (const attempt of attempts) {
         const encoded = encodeURIComponent(attempt.value);
         const detail = await httpApiAsync("GET", `/v1/policies/detail?policy_name=${encoded}`);
+        if (detail && typeof detail.error === "string") {
+            lines.push(`详情探测(${attempt.label}): 接口报错 ${detail.error.slice(0, 60)}`);
+            continue;
+        }
         const keys = describeKeys(detail, 1);
         if (keys.length === 0) {
             lines.push(`详情探测(${attempt.label}): 返回为空或无字段`);
@@ -143,21 +147,30 @@ async function probeDnsCache(lines, report) {
         for (const key of topKeys) {
             const value = res[key];
             if (Array.isArray(value)) {
-                report.dnsCount = value.length;
-                lines.push(`字段 ${key}: 数组 ${value.length} 条 (通道B 可用)`);
+                lines.push(`字段 ${key}: 数组 ${value.length} 条`);
                 if (value.length > 0) {
                     const keys = describeKeys(value[0], 0);
-                    report.dnsSampleKeys = keys;
-                    lines.push(`首条字段: ${keys.join(", ") || "非对象"}`);
+                    lines.push(`字段 ${key} 首条字段: ${keys.join(", ") || "非对象"}`);
                 }
-                break;
-            }
-            if (value && typeof value === "object") {
+            } else if (value && typeof value === "object") {
                 const subKeys = Object.keys(value);
-                report.dnsCount = subKeys.length;
-                lines.push(`字段 ${key}: 对象 ${subKeys.length} 个键 (通道B 可能可用)`);
-                break;
+                lines.push(`字段 ${key}: 对象 ${subKeys.length} 个键`);
+                if (subKeys.length > 0) {
+                    const firstVal = value[subKeys[0]];
+                    if (firstVal && typeof firstVal === "object" && !Array.isArray(firstVal)) {
+                        const keys = describeKeys(firstVal, 0);
+                        lines.push(`字段 ${key} 首值字段: ${keys.join(", ") || "非对象"}`);
+                    } else {
+                        lines.push(`字段 ${key} 首值类型: ${typeOf(firstVal)}`);
+                    }
+                }
+            } else {
+                lines.push(`字段 ${key}: ${typeOf(value)}`);
             }
+        }
+        if (res.dnsCache !== undefined) {
+            report.dnsCacheType = typeOf(res.dnsCache);
+            lines.push("已定位 dnsCache 字段 → 通道B 按此结构落地");
         }
         return;
     }
