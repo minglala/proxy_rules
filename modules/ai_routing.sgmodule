@@ -1,59 +1,75 @@
 #!name=全栈 AI 服务高优分流
-#!desc=高优先级接管 OpenAI、Claude、Gemini、Grok、Perplexity、Cursor 及 Copilot 等 AI 流量，防误分流至受限地区
+#!desc=高优先级接管 OpenAI、Claude、Gemini、Grok、Perplexity、Cursor 及 Copilot 等 AI 流量，防误分流至受限地区；全部规则开启 extended-matching（SNI/Host 扩展匹配）
 #!category=分流增强
 
 [Rule]
 # OpenAI / ChatGPT / Sora
-DOMAIN-SUFFIX,openai.com,📟智能助理
-DOMAIN-SUFFIX,chatgpt.com,📟智能助理
-DOMAIN-SUFFIX,oaistatic.com,📟智能助理
-DOMAIN-SUFFIX,oaiusercontent.com,📟智能助理
-DOMAIN-SUFFIX,sora.com,📟智能助理
-DOMAIN-SUFFIX,ai.com,📟智能助理
-DOMAIN,chatgpt.livekit.cloud,📟智能助理
-DOMAIN,host.livekit.cloud,📟智能助理
+DOMAIN-SUFFIX,openai.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,chatgpt.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,oaistatic.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,oaiusercontent.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,sora.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,ai.com,📟智能助理,extended-matching
+DOMAIN,chatgpt.livekit.cloud,📟智能助理,extended-matching
+DOMAIN,host.livekit.cloud,📟智能助理,extended-matching
 
 # Anthropic / Claude
-DOMAIN-SUFFIX,anthropic.com,📟智能助理
-DOMAIN-SUFFIX,claude.ai,📟智能助理
-DOMAIN-SUFFIX,claudeusercontent.com,📟智能助理
-DOMAIN-SUFFIX,clau.de,📟智能助理
+DOMAIN-SUFFIX,anthropic.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,claude.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,claudeusercontent.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,clau.de,📟智能助理,extended-matching
 
 # Google Gemini / AI Studio / NotebookLM / DeepMind
-DOMAIN-SUFFIX,gemini.google.com,📟智能助理
-DOMAIN-SUFFIX,generativelanguage.googleapis.com,📟智能助理
-DOMAIN-SUFFIX,aistudio.google.com,📟智能助理
-DOMAIN-SUFFIX,makersuite.google.com,📟智能助理
-DOMAIN-SUFFIX,notebooklm.google.com,📟智能助理
-DOMAIN-SUFFIX,notebooklm.google,📟智能助理
-DOMAIN-SUFFIX,deepmind.com,📟智能助理
-DOMAIN-SUFFIX,deepmind.google,📟智能助理
-DOMAIN-SUFFIX,labs.google,📟智能助理
-DOMAIN-SUFFIX,jules.google.com,📟智能助理
-DOMAIN,geller-pa.googleapis.com,📟智能助理
-DOMAIN,proactivebackend-pa.googleapis.com,📟智能助理
-DOMAIN,aisandbox-pa.googleapis.com,📟智能助理
-DOMAIN,alkalimakersuite-pa.clients6.google.com,📟智能助理
+DOMAIN-SUFFIX,gemini.google.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,generativelanguage.googleapis.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,aistudio.google.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,makersuite.google.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,notebooklm.google.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,notebooklm.google,📟智能助理,extended-matching
+DOMAIN-SUFFIX,deepmind.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,deepmind.google,📟智能助理,extended-matching
+DOMAIN-SUFFIX,labs.google,📟智能助理,extended-matching
+DOMAIN-SUFFIX,jules.google.com,📟智能助理,extended-matching
+DOMAIN,geller-pa.googleapis.com,📟智能助理,extended-matching
+DOMAIN,proactivebackend-pa.googleapis.com,📟智能助理,extended-matching
+DOMAIN,aisandbox-pa.googleapis.com,📟智能助理,extended-matching
+DOMAIN,alkalimakersuite-pa.clients6.google.com,📟智能助理,extended-matching
 
 # xAI / Grok / Perplexity
-DOMAIN-SUFFIX,x.ai,📟智能助理
-DOMAIN-SUFFIX,grok.com,📟智能助理
-DOMAIN-SUFFIX,perplexity.ai,📟智能助理
-DOMAIN-SUFFIX,pplx.ai,📟智能助理
+DOMAIN-SUFFIX,x.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,grok.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,perplexity.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,pplx.ai,📟智能助理,extended-matching
 
 # AI 编程与聚合 API（Cursor / Copilot / Windsurf / OpenRouter / Groq）
-DOMAIN-SUFFIX,cursor.sh,📟智能助理
-DOMAIN-SUFFIX,cursor.com,📟智能助理
-DOMAIN-SUFFIX,cursorapi.com,📟智能助理
-DOMAIN-SUFFIX,api.githubcopilot.com,📟智能助理
-DOMAIN-SUFFIX,copilot-proxy.githubusercontent.com,📟智能助理
-DOMAIN-SUFFIX,codeium.com,📟智能助理
-DOMAIN-SUFFIX,windsurf.com,📟智能助理
-DOMAIN-SUFFIX,openrouter.ai,📟智能助理
-DOMAIN-SUFFIX,groq.com,📟智能助理
-DOMAIN-SUFFIX,mistral.ai,📟智能助理
-DOMAIN-SUFFIX,cohere.ai,📟智能助理
-DOMAIN-SUFFIX,cohere.com,📟智能助理
-DOMAIN-SUFFIX,poe.com,📟智能助理
-DOMAIN-SUFFIX,meta.ai,📟智能助理
-DOMAIN-SUFFIX,midjourney.com,📟智能助理
+DOMAIN-SUFFIX,cursor.sh,📟智能助理,extended-matching
+DOMAIN-SUFFIX,cursor.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,cursorapi.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,api.githubcopilot.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,copilot-proxy.githubusercontent.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,codeium.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,windsurf.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,openrouter.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,groq.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,mistral.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,cohere.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,cohere.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,poe.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,meta.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,midjourney.com,📟智能助理,extended-matching
+
+# AI 平台与模型托管 / 生成服务
+DOMAIN-SUFFIX,huggingface.co,📟智能助理,extended-matching
+DOMAIN-SUFFIX,hf.co,📟智能助理,extended-matching
+DOMAIN-SUFFIX,replicate.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,together.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,fireworks.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,character.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,elevenlabs.io,📟智能助理,extended-matching
+DOMAIN-SUFFIX,runway.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,runwayml.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,suno.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,lumalabs.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,ideogram.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,stability.ai,📟智能助理,extended-matching
+DOMAIN-SUFFIX,leonardo.ai,📟智能助理,extended-matching
