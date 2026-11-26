@@ -35,6 +35,11 @@ DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com,📟智能助理,extended-match
 DOMAIN-SUFFIX,aisandbox-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,robinfrontend-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,signaler-pa.googleapis.com,📟智能助理,extended-matching
+# Gemini App 启动与账号框架（实测：漏走香港会触发地区误判 1060）
+DOMAIN-SUFFIX,oauth2.googleapis.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,oauthaccountmanager.googleapis.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,growth-pa.googleapis.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,notifications-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,alkalimakersuite-pa.clients6.google.com,📟智能助理,extended-matching
 
 # xAI / Grok / Perplexity
