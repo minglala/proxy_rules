@@ -41,6 +41,8 @@ DOMAIN-SUFFIX,oauthaccountmanager.googleapis.com,📟智能助理,extended-match
 DOMAIN-SUFFIX,growth-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,notifications-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,play.googleapis.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,accountcapabilities-pa.googleapis.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,subscriptionsfirstparty-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,alkalimakersuite-pa.clients6.google.com,📟智能助理,extended-matching
 
 # xAI / Grok / Perplexity
