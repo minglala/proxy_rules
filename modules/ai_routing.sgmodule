@@ -34,6 +34,7 @@ DOMAIN-SUFFIX,geller-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,aisandbox-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,robinfrontend-pa.googleapis.com,📟智能助理,extended-matching
+DOMAIN-SUFFIX,signaler-pa.googleapis.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,alkalimakersuite-pa.clients6.google.com,📟智能助理,extended-matching
 
 # xAI / Grok / Perplexity
