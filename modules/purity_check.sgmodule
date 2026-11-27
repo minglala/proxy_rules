@@ -6,4 +6,4 @@
 Purity_Check=title="AI 与流媒体纯净度体检",content="轻点右上角刷新执行深度体检",style=info,script-name=purity_check.js,update-interval=86400
 
 [Script]
-purity_check.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/purity_check.js,type=generic,timeout=20
+purity_check.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/scripts/purity_check.js,type=generic,timeout=20
