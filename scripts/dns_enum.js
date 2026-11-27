@@ -21,6 +21,8 @@ const DOMAIN_GROUP_KEY = "dns_enum_domain_group";
 // 2026-11-25 两次全量枚举一致确认的机场后缀, 直接信任; 新后缀需满足信任规则才应用
 const TRUSTED_SUFFIXES = ["chhbuv.cn", "inba996.com", "myinba55.com", "mcw.gay", "keyapisub.xyz"];
 const BLOCK_KEY = "dns_enum_host_block";
+const SNAPSHOT_KEY = "dns_enum_panel_snapshot";
+const SNAPSHOT_FRESH_MS = 5 * 60 * 1000;
 const PROBE_URL = "http://cp.cloudflare.com/generate_204";
 const PROBE_TIMEOUT_SEC = 3;
 const TIME_BUDGET_MS = 200000;
@@ -588,6 +590,18 @@ async function main() {
         $done();
         return;
     }
+    if (typeof $cronexp === "undefined") {
+        try {
+            const snapRaw = $persistentStore.read(SNAPSHOT_KEY);
+            if (snapRaw) {
+                const snap = JSON.parse(snapRaw);
+                if (snap && typeof snap.ts === "number" && typeof snap.title === "string" && typeof snap.content === "string" && Date.now() - snap.ts < SNAPSHOT_FRESH_MS) {
+                    $done({ title: snap.title, content: snap.content, icon: "list.bullet.indent", "icon-color": "#34C759" });
+                    return;
+                }
+            }
+        } catch (_) {}
+    }
     const lines = [];
     try {
         let policiesRes = await httpApiAsync("GET", "/v1/policies", { include_external: "true" });
@@ -779,6 +793,9 @@ async function main() {
             lines.push("失败原因见上, 截图发我即可");
         }
         lines.push(`检查时间: ${formatTimeNow()}`);
+        try {
+            $persistentStore.write(JSON.stringify({ ts: Date.now(), title: `节点域名枚举v19 (${formatTimeNow()})`, content: lines.join("\n") }), SNAPSHOT_KEY);
+        } catch (_) {}
         if (typeof $cronexp !== "undefined") {
             $done();
             return;
