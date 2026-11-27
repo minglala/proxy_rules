@@ -1,5 +1,5 @@
 #!name=全栈 AI 服务高优分流
-#!desc=高优先级接管 OpenAI、Claude、Gemini、Grok、Perplexity、Cursor 及 Copilot 等 AI 流量，防误分流至受限地区；全部规则开启 extended-matching（SNI/Host 扩展匹配）
+#!desc=高优先级接管 OpenAI、Claude、Grok、Perplexity、Cursor 及 Copilot 等 AI 流量，防误分流至受限地区；Google 系已移出模块、由本地规则分流；全部规则开启 extended-matching（SNI/Host 扩展匹配）
 #!category=分流增强
 
 [Rule]
@@ -18,32 +18,6 @@ DOMAIN-SUFFIX,anthropic.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,claude.ai,📟智能助理,extended-matching
 DOMAIN-SUFFIX,claudeusercontent.com,📟智能助理,extended-matching
 DOMAIN-SUFFIX,clau.de,📟智能助理,extended-matching
-
-# Google Gemini / AI Studio / NotebookLM / DeepMind
-DOMAIN-SUFFIX,gemini.google.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,generativelanguage.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,aistudio.google.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,makersuite.google.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,notebooklm.google.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,notebooklm.google,📟智能助理,extended-matching
-DOMAIN-SUFFIX,deepmind.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,deepmind.google,📟智能助理,extended-matching
-DOMAIN-SUFFIX,labs.google,📟智能助理,extended-matching
-DOMAIN-SUFFIX,jules.google.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,geller-pa.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,aisandbox-pa.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,robinfrontend-pa.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,signaler-pa.googleapis.com,📟智能助理,extended-matching
-# Gemini App 启动与账号框架（实测：漏走香港会触发地区误判 1060）
-DOMAIN-SUFFIX,oauth2.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,oauthaccountmanager.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,growth-pa.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,notifications-pa.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,play.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,accountcapabilities-pa.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,subscriptionsfirstparty-pa.googleapis.com,📟智能助理,extended-matching
-DOMAIN-SUFFIX,alkalimakersuite-pa.clients6.google.com,📟智能助理,extended-matching
 
 # xAI / Grok / Perplexity
 DOMAIN-SUFFIX,x.ai,📟智能助理,extended-matching
