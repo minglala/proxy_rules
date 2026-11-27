@@ -7,6 +7,6 @@ Node_Overview=title="节点状态概览",content="正在统计节点状态...",s
 One_Click_Fix=title="一键调通与自愈",content="轻点此卡片执行一键调通",style=info,script-name=one_click_fix.js,update-interval=86400
 
 [Script]
-auto_flush_dns.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/flush_dns.js,type=event,event-name=network-changed
-node_overview.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/node_overview.js,type=generic,timeout=20
-one_click_fix.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/one_click_fix.js,type=generic,timeout=25
+auto_flush_dns.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/scripts/flush_dns.js,type=event,event-name=network-changed
+node_overview.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/scripts/node_overview.js,type=generic,timeout=20
+one_click_fix.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/scripts/one_click_fix.js,type=generic,timeout=25
