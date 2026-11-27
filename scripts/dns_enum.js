@@ -1,5 +1,5 @@
 /**
- * Surge 节点域名枚举 + 自动写入配置 v19
+ * Surge 节点域名枚举 + 自动写入配置
  * 动态生成: 每次运行重新枚举节点域名, 通过 /v1/policies 外部节点自带的 group 字段归属订阅策略组,
  *       域名归属投票仅基于本次探针结果(freshMap), 不受历史累积映射污染;
  *       同步持久化 domain->group 记忆用于本次无探针多数票时的回退;
@@ -794,14 +794,14 @@ async function main() {
         }
         lines.push(`检查时间: ${formatTimeNow()}`);
         try {
-            $persistentStore.write(JSON.stringify({ ts: Date.now(), title: `节点域名枚举v19 (${formatTimeNow()})`, content: lines.join("\n") }), SNAPSHOT_KEY);
+            $persistentStore.write(JSON.stringify({ ts: Date.now(), title: `节点域名枚举 (${formatTimeNow()})`, content: lines.join("\n") }), SNAPSHOT_KEY);
         } catch (_) {}
         if (typeof $cronexp !== "undefined") {
             $done();
             return;
         }
         $done({
-            title: `节点域名枚举v19 (${formatTimeNow()})`,
+            title: `节点域名枚举 (${formatTimeNow()})`,
             content: lines.join("\n"),
             icon: "list.bullet.indent",
             "icon-color": "#34C759"
