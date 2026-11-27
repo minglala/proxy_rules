@@ -18,7 +18,7 @@
 const MAP_KEY = "dns_enum_map";
 const RUNS_KEY = "dns_enum_domain_runs";
 const DOMAIN_GROUP_KEY = "dns_enum_domain_group";
-// 2026-11-25 两次全量枚举一致确认的机场后缀, 直接信任; 新后缀需满足信任规则才应用
+// 只有名单内的机场后缀才提供专属 DNS 解析; 探到的其他域名一律走默认 DNS, 新后缀需手动加入本名单
 const TRUSTED_SUFFIXES = ["chhbuv.cn", "inba996.com", "myinba55.com", "mcw.gay", "keyapisub.xyz"];
 const BLOCK_KEY = "dns_enum_host_block";
 const SNAPSHOT_KEY = "dns_enum_panel_snapshot";
@@ -579,10 +579,7 @@ function loadDomainRuns() {
 
 function isTrustedDomain(domain, thisRunNodeCount, domainRuns) {
     const s2 = regDomainOf(domain);
-    if (TRUSTED_SUFFIXES.includes(s2)) return true;
-    if (thisRunNodeCount >= 3) return true;
-    if ((domainRuns[domain] || 0) >= 2) return true;
-    return false;
+    return TRUSTED_SUFFIXES.includes(s2);
 }
 
 async function main() {
