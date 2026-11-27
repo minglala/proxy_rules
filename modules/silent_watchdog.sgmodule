@@ -5,4 +5,4 @@
 #!arguments-desc=interval_min: 巡检间隔(分钟, 默认30)\ncooldown_hours: 同类告警冷却(小时, 默认2)\nprobe_timeout: 单次探测超时(秒, 默认6)
 
 [Script]
-silent_watchdog.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/silent_watchdog.js,type=cron,cronexp="*/{{{interval_min}}} * * * *",timeout=20,argument=cooldown_hours={{{cooldown_hours}}};probe_timeout={{{probe_timeout}}}
+silent_watchdog.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/scripts/silent_watchdog.js,type=cron,cronexp="*/{{{interval_min}}} * * * *",timeout=20,argument=cooldown_hours={{{cooldown_hours}}};probe_timeout={{{probe_timeout}}}
