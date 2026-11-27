@@ -1,0 +1,28 @@
+# HSBC 汇丰分流规则集
+# 用法：在本地 [Rule] 中以 RULE-SET 引用本文件，出口策略在引用行指定
+# 放置位置要靠前（AI 模块之后、YouTube/Google 与通用代理/直连规则集之前），避免被宽泛规则先行截获
+
+# 汇丰香港（个人银行 / HSBC HK App / Trade25 / PayMe 均在此域名下）
+DOMAIN-SUFFIX,hsbc.com.hk
+# 汇丰全球主站（www.hsbc.com 及各国子站入口）
+DOMAIN-SUFFIX,hsbc.com
+# 汇丰中国
+DOMAIN-SUFFIX,hsbc.com.cn
+# HSBCnet 企业网银
+DOMAIN-SUFFIX,hsbcnet.com
+
+# 其他地区汇丰（按需取消注释启用）
+#DOMAIN-SUFFIX,hsbc.co.uk
+#DOMAIN-SUFFIX,hsbc.com.sg
+#DOMAIN-SUFFIX,hsbc.com.tw
+#DOMAIN-SUFFIX,hsbc.com.au
+#DOMAIN-SUFFIX,hsbc.com.my
+#DOMAIN-SUFFIX,hsbc.com.ph
+#DOMAIN-SUFFIX,hsbc.co.id
+#DOMAIN-SUFFIX,hsbc.com.vn
+#DOMAIN-SUFFIX,hsbc.ca
+#DOMAIN-SUFFIX,hsbc.fr
+#DOMAIN-SUFFIX,hsbc.de
+#DOMAIN-SUFFIX,hsbc.com.mx
+#DOMAIN-SUFFIX,hsbc.com.br
+#DOMAIN-SUFFIX,hsbc.ae
