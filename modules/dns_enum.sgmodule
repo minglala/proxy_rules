@@ -1,12 +1,11 @@
 #!name=节点域名专用解析
-#!desc=动态生成: 枚举当前节点域名并按策略组分组(每组用自己的专用 DNS, 组名与 DNS 都在参数里配置), 仅通过MCP自动写入配置[Host]段(标记块, 只替换自己那块); 定时自动更新默认关闭(可按需开启); 需在配置[General]开启http-api及http-api-mcp并把密钥填入本模块参数api_key
+#!desc=动态生成: 枚举当前节点域名并按策略组分组(每组用自己的专用 DNS, 组名与 DNS 都在参数里配置), 仅通过MCP自动写入配置[Host]段(标记块, 只替换自己那块); 仅手动点击面板时运行, 不自动运行; 需在配置[General]开启http-api及http-api-mcp并把密钥填入本模块参数api_key
 #!category=网络优化
-#!arguments=g1_name:Quick,g1_doh1:https://alicdn-tbcdn-jdcdn-iycdn.mcw.gay/b13dc6533ab6db6cac6982acccec36e8/dns-query,g1_doh2:https://txcdn-tbcdn-bdcdn-ykcdn.mcw.gay/292f105ae785d1845a8799971ac3a14b/dns-query,g2_name:Staryun,g2_doh1:https://radar.l9oauy.com:34683/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6,g2_doh2:none,g3_name:none,g3_doh1:none,g3_doh2:none,boot1:223.5.5.5,boot2:119.29.29.29,api_port:6171,api_key,auto_update:off,auto_hours:6
-#!arguments-desc=g1~g3 按槽位成对配置: g<N>_name = 策略组名称(与 Surge 里订阅策略组同名), g<N>_doh1/doh2 = 该组专用 DoH; g<N>_name 填 none 表示该槽位不用, g<N>_doh2 填 none 表示该组仅用 1 台 DoH; boot1/boot2: DoH自身域名的bootstrap解析; api_port/api_key: 配置中http-api的端口与密钥(与配置里填写的完全一致); auto_update: 定时自动刷新开关(on/off, 默认off); auto_hours: 定时自动刷新间隔小时数(默认6)
+#!arguments=g1_name:Quick,g1_doh1:https://alicdn-tbcdn-jdcdn-iycdn.mcw.gay/b13dc6533ab6db6cac6982acccec36e8/dns-query,g1_doh2:https://txcdn-tbcdn-bdcdn-ykcdn.mcw.gay/292f105ae785d1845a8799971ac3a14b/dns-query,g2_name:Staryun,g2_doh1:https://radar.l9oauy.com:34683/dns-query/1dbbdec9-5627-41a2-bfb8-b195af6544c6,g2_doh2:none,g3_name:none,g3_doh1:none,g3_doh2:none,boot1:223.5.5.5,boot2:119.29.29.29,api_port:6171,api_key
+#!arguments-desc=g1~g3 按槽位成对配置: g<N>_name = 策略组名称(与 Surge 里订阅策略组同名), g<N>_doh1/doh2 = 该组专用 DoH; g<N>_name 填 none 表示该槽位不用, g<N>_doh2 填 none 表示该组仅用 1 台 DoH; boot1/boot2: DoH自身域名的bootstrap解析; api_port/api_key: 配置中http-api的端口与密钥(与配置里填写的完全一致)
 
 [Panel]
 DNS_Enum=title="节点域名枚举",content="点击刷新开始枚举并自动写入配置",style=info,script-name=dns_enum.js
 
 [Script]
-dns_enum.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/scripts/dns_enum.js,type=generic,timeout=300,argument="g1_name={{{g1_name}}}&g1_doh1={{{g1_doh1}}}&g1_doh2={{{g1_doh2}}}&g2_name={{{g2_name}}}&g2_doh1={{{g2_doh1}}}&g2_doh2={{{g2_doh2}}}&g3_name={{{g3_name}}}&g3_doh1={{{g3_doh1}}}&g3_doh2={{{g3_doh2}}}&boot1={{{boot1}}}&boot2={{{boot2}}}&api_key={{{api_key}}}&api_port={{{api_port}}}&auto_update={{{auto_update}}}"
-dns_enum_cron.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/scripts/dns_enum.js,type=cron,cronexp="0 */{{{auto_hours}}} * * *",timeout=300,argument="g1_name={{{g1_name}}}&g1_doh1={{{g1_doh1}}}&g1_doh2={{{g1_doh2}}}&g2_name={{{g2_name}}}&g2_doh1={{{g2_doh1}}}&g2_doh2={{{g2_doh2}}}&g3_name={{{g3_name}}}&g3_doh1={{{g3_doh1}}}&g3_doh2={{{g3_doh2}}}&boot1={{{boot1}}}&boot2={{{boot2}}}&api_key={{{api_key}}}&api_port={{{api_port}}}&auto_update={{{auto_update}}}"
+dns_enum.js=script-path=https://raw.githubusercontent.com/minglala/proxy_rules/refs/heads/main/scripts/dns_enum.js,type=generic,timeout=300,argument="g1_name={{{g1_name}}}&g1_doh1={{{g1_doh1}}}&g1_doh2={{{g1_doh2}}}&g2_name={{{g2_name}}}&g2_doh1={{{g2_doh1}}}&g2_doh2={{{g2_doh2}}}&g3_name={{{g3_name}}}&g3_doh1={{{g3_doh1}}}&g3_doh2={{{g3_doh2}}}&boot1={{{boot1}}}&boot2={{{boot2}}}&api_key={{{api_key}}}&api_port={{{api_port}}}"
